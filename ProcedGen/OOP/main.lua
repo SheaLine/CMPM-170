@@ -12,6 +12,11 @@ function love.load()
     math.randomseed(os.time())
     map = Map:new()
     player = Player:new(200, 200)
+
+    -- Fonts
+    levelUp = love.graphics.newFont(20)
+    default = love.graphics.newFont(12)
+
 end
 
 function love.update(dt)
@@ -21,8 +26,26 @@ function love.update(dt)
     if love.keyboard.isDown("r") then
         map = Map:new()
         player = Player:new(200, 200)
+        
     end
 end
+
+function love.keypressed(key)
+    if key == "space" and player.level >= 3 then
+        for i = #map.enemies, 1, -1 do
+            local e = map.enemies[i]
+            local dx = player.x - e.x
+            local dy = player.y - e.y
+            if dx * dx + dy * dy < 400 then -- within 20px
+                e.health = e.health - 10
+                if e.health <= 0 then
+                    table.remove(map.enemies, i)
+                end
+            end
+        end
+    end
+end
+
 
 function love.draw()
     if player.health <= 0 then
@@ -63,9 +86,17 @@ function love.draw()
         end end
     end end
     for _,c in ipairs(map.coins) do c:draw() end
+    for _, e in ipairs(map.enemies) do
+        e:draw()
+    end
+    
     player:draw(map)
     love.graphics.pop()
+
+
     -- HUD
+
+        -- health bar
     local hbW = (player.health/player.maxHealth)*100
     love.graphics.setColor(0,0,0)
     love.graphics.rectangle("fill",22,22,104,24)
@@ -73,6 +104,8 @@ function love.draw()
     love.graphics.rectangle("fill",24,24,hbW,20)
     love.graphics.setColor(1,1,1)
     love.graphics.print("Use WASD or arrow keys to move", 10, sh-30)
+    
+        -- health text
     local tu = map:getTileAt(player.x, player.y)
     if tu == Map.TILES.LAVA then
         love.graphics.setColor(1,0,0)
@@ -87,7 +120,40 @@ function love.draw()
         love.graphics.print("Health: "..math.floor(player.health), 20, 50)
         love.graphics.rectangle("fill",24,24,hbW,20)
     end
-    love.graphics.print("Collect coins to gain health!", 10, sh-50)
+
+        -- level bar
+    local lbW = (player.coinsCollected/player.coinsForLevelUp)*100
+    love.graphics.setColor(0,0,0)
+    love.graphics.rectangle("fill",678,22,104,24)
+    love.graphics.setColor(1, 0.84, 0, 1 ) -- gold color
+    love.graphics.rectangle("fill",680,24,lbW,20)
+    love.graphics.setColor(1,1,1)
+
+    love.graphics.setColor(1, 0.84, 0, 1)
+    love.graphics.print("Coins Needed: "..player.coinsForLevelUp - player.coinsCollected, 680, sh - 530)
+    love.graphics.print("Coins Collected: "..player.totalCoins, 20, 70)
+
+    love.graphics.setColor(0,1,0)
+    love.graphics.print("Level: "..player.level, 680, sh - 550)
+    love.graphics.setColor(1,1,1)
+
+    
+
+        -- level up message
+    if player.currentMessage then
+        love.graphics.setColor(1,1,0)  -- yellow text
+        love.graphics.setFont(levelUp)
+        love.graphics.printf(
+        player.currentMessage,
+        0, love.graphics.getHeight()/2 + 20,
+        love.graphics.getWidth(),
+        "center"
+        )
+        love.graphics.setColor(1,1,1)
+        love.graphics.setFont(default)
+    end
+        -- instructions
+    love.graphics.print("Collect coins to gain health and level up!", 10, sh-50)
     love.graphics.print("Avoid LAVA to prevent health loss!", 10, sh-70)
     love.graphics.print("Press 'R' to restart", 10, sh-90)
 end

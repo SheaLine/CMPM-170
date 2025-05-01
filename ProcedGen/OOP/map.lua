@@ -1,5 +1,6 @@
 -- map.lua
 local Coin = require "coin"
+local Enemy = require "enemies"
 local Map = {}
 Map.__index = Map
 
@@ -26,6 +27,7 @@ function Map:new()
     local instance = setmetatable({}, self)
     instance.worldChunks = {}
     instance.coins = {}
+    instance.enemies = {}
     instance:initializeRules()
     return instance
 end
@@ -209,6 +211,19 @@ function Map:generateChunk(cx, cy)
             table.insert(self.coins, Coin:new(wx, wy))
         end
     end end
+
+    -- spawn enemies
+    for y = 1, self.CHUNK_H do
+        for x = 1, self.CHUNK_W do
+            if math.random() < 0.0025 then  -- lower chance than coins
+                local wx = cx * (self.CHUNK_W * self.CELL_SIZE) + (x - 1) * self.CELL_SIZE + self.CELL_SIZE / 2
+                local wy = cy * (self.CHUNK_H * self.CELL_SIZE) + (y - 1) * self.CELL_SIZE + self.CELL_SIZE / 2
+                table.insert(self.enemies, Enemy:new(wx, wy))
+            end
+        end
+    end
+
+
     return chunk
 end
 
