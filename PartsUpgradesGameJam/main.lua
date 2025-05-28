@@ -1,6 +1,5 @@
 -- main.lua
 
--- pull in your classes
 local Player = require "player"
 local Part   = require "part"
 local Road   = require "road"
@@ -24,6 +23,7 @@ local screenWidth, screenHeight = love.graphics.getDimensions()
 local centerX, centerY = screenWidth/2, screenHeight/2
 
 function initGame()
+    -- Global variables
     _G.finishY = -15000
     _G.GAME_OVER = false
     _G.winner = 0

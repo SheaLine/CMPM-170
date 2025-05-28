@@ -7,7 +7,7 @@ function Player:new(x, y, playerNumber)
     local instance = Entity.new(self, x, y)
     instance.type                   = "player"
     instance.playerNumber           = playerNumber
-    instance.color                  ={0.2, 0.6, 1}
+    instance.color                  = {0.2, 0.6, 1}
 
 
     -- physics
@@ -15,7 +15,7 @@ function Player:new(x, y, playerNumber)
     instance.velY                   = 0
 
     -- base stats
-    instance.baseSpeed              = 120 --360
+    instance.baseSpeed              = 120
     instance.baseAcceleration       = 200
     instance.baseFriction           = 800
 
@@ -31,9 +31,9 @@ function Player:new(x, y, playerNumber)
     instance.tireLevel              = 0
 
     -- DELETE THIS LATER
-    instance.upgrade                = 1
-    instance.partsCollected         = 0
-    instance.partsForNextUpgrade    = 3
+    -- instance.upgrade                = 1
+    -- instance.partsCollected         = 0
+    -- instance.partsForNextUpgrade    = 3
     return instance
 end
 
