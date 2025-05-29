@@ -10,7 +10,8 @@ Tutorial = require "tutorial"
 
 -- Globals
 local mapEntity, players, p1Minigame, p2Minigame, viewports, blankEntity1, blankEntity2
-local tutorialEntity = tutorialEntity or Tutorial:new()
+local tutor = tutor or Tutorial:new()
+local p1FirstDone, p2FirstDone = false, false
 
 
 -- auto scale the game to fit the window
@@ -34,7 +35,6 @@ function Viewport:draw()
     love.graphics.setScissor(self.x, self.y, self.w, self.h)
 
     -- Shift the origin so (0,0) is the top‑left of this viewport
-   
     love.graphics.translate(self.x, self.y)
 
     -- Draw whatever Entity lives here (map or minigame)
@@ -56,6 +56,22 @@ function Viewport:draw()
             "Go try to fix something in the city!",
             0, self.h/2 + 20, self.w, "center"
         )
+    end
+
+    if self.entity.type == "tutorial" then
+        if self.entity.state == "normal" then
+            love.graphics.setColor(1,1,1)
+            love.graphics.printf(
+                ":) Tutorial :)",
+                0, 10, self.w, "center"
+            )
+        else 
+            love.graphics.setColor(1,0,0)
+            love.graphics.printf(
+                ">:( Tutorial >:(",
+                0, 10, self.w, "center"
+            )
+        end
     end
 
     -- Un‑translate
@@ -108,7 +124,7 @@ function generateViewports()
       Viewport:new(0,         0, W * 0.5, topH, p1Minigame or blankEntity1),
       Viewport:new(W * 0.5,   0, W * 0.5, topH, p2Minigame or blankEntity2),
       Viewport:new(0,      topH,   W,     mapH,   mapEntity),
-      Viewport:new(0, topH + mapH, W, tutorialH, tutorialEntity),
+      Viewport:new(0, topH + mapH, W, tutorialH, tutor),
     }
 end
 
@@ -131,11 +147,20 @@ function love.load()
     p1Minigame, p2Minigame = nil, nil
 
     -- countdown timer
-    local TIMER_DURATION = 60
+    local TIMER_DURATION = 300
     gameTimer = Countdown:new(TIMER_DURATION, nil, function()
         GameOver()
     end)
     gameTimer:start()
+
+    -- first tutorial message
+    tutor:queueMessages(
+    {"Hey there friend! Do you mind helping me turn on the lights in here I am at City Hall",
+    " just come over here and press Q if you are Red or / if you are Blue to start a minigame.",
+    "Once you complete the minigame, the lights will turn on. Please hurry, I am getting scared!"},
+        7
+    )
+    
     generateViewports()
 end
 
@@ -164,6 +189,31 @@ function love.update(dt)
             p2Minigame = nil
             generateViewports()
         end)
+    end
+
+    if p1Minigame and p1Minigame.completed and not p1FirstDone then
+        print("Player 1 first minigame done")
+        p1FirstDone = true
+    end
+
+    if p2Minigame and p2Minigame.completed and not p2FirstDone then
+        print("Player 2 first minigame done")
+        p2FirstDone = true
+    end
+
+    if not tutor.angry and p1FirstDone and p2FirstDone then
+        print("HERE")
+        tutor.angry = true
+        tutor.state   = "angry"
+        tutor:queueMessages(
+            {"Haha! I lied—I’m free now and will destroy this city!",
+            "ahahahahah! You thought you could help me? No way!",
+            "Now you must play my twisted minigames to save the city!",
+            "I will break everything in this city if you don’t stop me!",
+            "The only way to stop me is to complete my minigames!",
+            "Or Don't! I don't care! haha!"},
+            5
+        )
     end
 end
 
