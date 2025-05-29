@@ -5,6 +5,8 @@ local Minigame  = require "minigame"
 local Timer    = require "lib.timer"
 local Countdown = require "countdown"
 local MazeMinigame = require "mazeGame"
+local GuessMinigame = require "guessGame"
+local FillMinigame = require "fillGame"
 
 -- Globals
 local mapEntity, players, p1Minigame, p2Minigame, viewports, blankEntity1, blankEntity2
@@ -26,17 +28,16 @@ function Viewport:update(dt)
 end
 
 function Viewport:draw()
-    -- 1) Clip to this viewport’s rectangle
+    -- Clip to this viewport’s rectangle
     love.graphics.push()
     love.graphics.setScissor(self.x, self.y, self.w, self.h)
 
-    -- 2) Shift the origin so (0,0) is the top‑left of this viewport
+    -- Shift the origin so (0,0) is the top‑left of this viewport
    
     love.graphics.translate(self.x, self.y)
 
-    -- 3) Draw whatever Entity lives here (map or minigame)
+    -- Draw whatever Entity lives here (map or minigame)
     if self.entity and self.entity.draw then
-        -- pass the viewport’s width/height so your draw(viewW, viewH) works
         self.entity:draw(self.w, self.h)
     end
 
@@ -45,6 +46,7 @@ function Viewport:draw()
     end
 
     if self.entity and self.entity.type == "blank" then
+        love.graphics.setFont(SmallFont)
         love.graphics.printf(
             string.format("No current Player %d Minigame.", self.entity.playerId),
             0, self.h/2, self.w, "center"
@@ -55,13 +57,13 @@ function Viewport:draw()
         )
     end
 
-    -- 4) Un‑translate
+    -- Un‑translate
     love.graphics.pop()
 
-    -- 5) Reset clipping
+    -- Reset clipping
     love.graphics.setScissor()
 
-    -- 6) Draw a debug border so you can see the split‑screen regions
+    -- Draw a debug border so you can see the split‑screen regions
     love.graphics.setColor(0, 1, 0)
     love.graphics.rectangle("line", self.x, self.y, self.w, self.h)
     love.graphics.setColor(1,1,1)
@@ -107,6 +109,13 @@ end
 
 function love.load()
     math.randomseed(os.time())
+
+    -- Fonts
+    ReallyBigFont = love.graphics.newFont(72)
+    DefaultFont = love.graphics.newFont(16)
+    SmallFont = love.graphics.newFont(12)
+    love.graphics.setFont(DefaultFont)
+
     -- instantiate players
     players = {
         Player:new(1, 100, 150, {up="w", down="s", left="a", right="d", action="q"}, {1,0,0}),
@@ -162,9 +171,9 @@ function love.keypressed(key)
     for _, p in ipairs(players) do
         if key == p.controls.action and not p.inMinigame then
             if p.playerId == 1 then
-                p1Minigame = MazeMinigame:new(1)
+                p1Minigame = FillMinigame:new(1)
             elseif p.playerId == 2 then
-                p2Minigame = MazeMinigame:new(2)
+                p2Minigame = FillMinigame:new(2)
             end
             p.inMinigame = true
             generateViewports()

@@ -68,6 +68,7 @@ function Countdown:draw(x, y)
     local font = love.graphics.getFont()
     local text = string.format(self.text, math.max(0, self.timeLeft))
     love.graphics.setColor(1,1,1)
+    love.graphics.setFont(DefaultFont)
     love.graphics.print(text, x - font:getWidth(text)/2, y)
 end
 

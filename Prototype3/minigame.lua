@@ -30,6 +30,7 @@ function Minigame:draw(viewW, viewH)
     -- Draw instructions
     love.graphics.setColor(1,1,1)
     if self.completed then
+        love.graphics.setFont(DefaultFont)
         love.graphics.printf("Completed!", 0, viewH/2, viewW, "center")
         if not self.timerStarted then
             self.idleTimer:start()
