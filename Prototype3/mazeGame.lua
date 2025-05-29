@@ -126,6 +126,7 @@ function MazeMinigame:draw(viewW, viewH)
 
     -- draw the instruction on top
     love.graphics.setColor(1,1,1)
+    love.graphics.setFont(DefaultFont)
     love.graphics.printf(
         "Get to the green box",
         0, 4, viewW, "center"

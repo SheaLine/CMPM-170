@@ -6,7 +6,6 @@ local Timer    = require "lib.timer"
 local Countdown = require "countdown"
 local MazeMinigame = require "mazeGame"
 local GuessMinigame = require "guessGame"
-local FillMinigame = require "fillGame"
 
 -- Globals
 local mapEntity, players, p1Minigame, p2Minigame, viewports, blankEntity1, blankEntity2
@@ -171,9 +170,13 @@ function love.keypressed(key)
     for _, p in ipairs(players) do
         if key == p.controls.action and not p.inMinigame then
             if p.playerId == 1 then
-                p1Minigame = FillMinigame:new(1)
+                local minigames = {MazeMinigame, GuessMinigame}
+                local chosenMinigame = minigames[math.random(#minigames)]
+                p1Minigame = chosenMinigame:new(1)
             elseif p.playerId == 2 then
-                p2Minigame = FillMinigame:new(2)
+                local minigames = {GuessMinigame, MazeMinigame}
+                local chosenMinigame = minigames[math.random(#minigames)]
+                p2Minigame = chosenMinigame:new(2)
             end
             p.inMinigame = true
             generateViewports()
