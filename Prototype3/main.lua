@@ -6,9 +6,11 @@ local Timer    = require "lib.timer"
 local Countdown = require "countdown"
 local MazeMinigame = require "mazeGame"
 local GuessMinigame = require "guessGame"
+Tutorial = require "tutorial"
 
 -- Globals
 local mapEntity, players, p1Minigame, p2Minigame, viewports, blankEntity1, blankEntity2
+local tutorialEntity = tutorialEntity or Tutorial:new()
 
 
 -- auto scale the game to fit the window
@@ -94,15 +96,19 @@ end
 function Blank:handleInput() end
 
 function generateViewports()
-    local W, H = love.graphics.getDimensions()
-    local topH = H * 0.3
-    local botH = H - topH
+    local W, H       = love.graphics.getDimensions()
+    local topH       = H * 0.30              
+    local tutorialH  = topH * 0.50          
+    local mapH       = H - topH - tutorialH  
+
     blankEntity1 = blankEntity1 or Blank:new(1)
     blankEntity2 = blankEntity2 or Blank:new(2)
+
     viewports = {
-        Viewport:new(0,0, W * 0.5, topH, p1Minigame or blankEntity1),
-        Viewport:new(W * 0.5,0, W * 0.5, topH, p2Minigame or blankEntity2),
-        Viewport:new(0,topH,W, botH, mapEntity)
+      Viewport:new(0,         0, W * 0.5, topH, p1Minigame or blankEntity1),
+      Viewport:new(W * 0.5,   0, W * 0.5, topH, p2Minigame or blankEntity2),
+      Viewport:new(0,      topH,   W,     mapH,   mapEntity),
+      Viewport:new(0, topH + mapH, W, tutorialH, tutorialEntity),
     }
 end
 
