@@ -1,3 +1,11 @@
+-- Requires
+local Player    = require "player"
+local Map       = require "map"
+local Minigame  = require "minigame"
+local Timer    = require "lib.timer"
+local Countdown = require "countdown"
+
+-- auto scale the game to fit the window
 local Viewport = {}
 Viewport.__index = Viewport
 function Viewport:new(x, y, w, h, entity)
@@ -8,7 +16,6 @@ function Viewport:new(x, y, w, h, entity)
 end
 function Viewport:update(dt)
     if self.entity and self.entity.update then
-        -- print("Updating viewport for:", self.entity.type)
         self.entity:update(dt)
     end
 end
@@ -25,6 +32,10 @@ function Viewport:draw()
     if self.entity and self.entity.draw then
         -- pass the viewport’s width/height so your draw(viewW, viewH) works
         self.entity:draw(self.w, self.h)
+    end
+
+    if self.entity.type == "map" then
+        gameTimer:draw(self.w/2, 10)
     end
 
     -- 4) Un‑translate
@@ -45,11 +56,6 @@ function Viewport:handleInput(key)
         self.entity:handleInput(key)
     end
 end
-
--- Requires
-local Player    = require "player"
-local Map       = require "map"
-local Minigame  = require "minigame"
 
 -- Blank placeholder entity for empty minigame slots
 local Blank = {}
@@ -80,7 +86,6 @@ function generateViewports()
 end
 
 function love.load()
-    love.window.setMode(800, 600, {resizable=true})
     -- instantiate players
     players = {
         Player:new(1, 100, 150, {up="w", down="s", left="a", right="d", action="q"}, {1,0,0}),
@@ -89,6 +94,13 @@ function love.load()
     -- map
     mapEntity = Map:new(800, 600, 64, players)
     p1Minigame, p2Minigame = nil, nil
+
+    -- countdown timer
+    local TIMER_DURATION = 60
+    gameTimer = Countdown:new(TIMER_DURATION, function()
+        GameOver()
+    end)
+    gameTimer:start()
     generateViewports()
 end
 
@@ -97,17 +109,24 @@ function love.resize(w, h)
 end
 
 function love.update(dt)
+    Timer.update(dt) -- update timers
+
     for _, vp in ipairs(viewports) do vp:update(dt) end
-    -- auto-exit minigame when completed
+
+    -- auto-exit minigame when completed after 5 seconds
     if p1Minigame and p1Minigame.completed then
-        players[1].inMinigame = false
-        p1Minigame = nil
-        generateViewports()
+        Timer.after(5, function()
+            players[1].inMinigame = false
+            p1Minigame = nil
+            generateViewports()
+        end)
     end
     if p2Minigame and p2Minigame.completed then
-        players[2].inMinigame = false
-        p2Minigame = nil
-        generateViewports()
+        Timer.after(5, function()
+            players[2].inMinigame = false
+            p2Minigame = nil
+            generateViewports()
+        end)
     end
 end
 
@@ -132,4 +151,9 @@ function love.keypressed(key)
     for _, vp in ipairs(viewports) do
         vp:handleInput(key)
     end
+end
+
+function GameOver()
+    print("Game Over!")
+    love.event.quit()
 end
