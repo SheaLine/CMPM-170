@@ -1,4 +1,5 @@
 local Entity = require "entity"
+local Countdown = require "countdown"
 local Minigame = setmetatable({}, {__index = Entity})
 Minigame.__index = Minigame
 
@@ -8,6 +9,10 @@ function Minigame:new(playerId)
     instance.playerId  = playerId
     instance.completed = false
     instance.debugMode = true
+    instance.timerStarted = false
+    instance.idleTimer = Countdown:new(5, "wait(%d)", function()
+        instance.idleTimer:cancel()
+    end)
     return instance
 end
 
@@ -33,6 +38,11 @@ function Minigame:draw(viewW, viewH)
         ) end
     else
         love.graphics.printf("Completed!", 0, viewH/2, viewW, "center")
+        if not self.timerStarted then
+            self.idleTimer:start()
+            self.timerStarted = true
+        end
+        self.idleTimer:draw(viewW/2, viewH - 70)
     end
 
     _G.viewW = viewW 

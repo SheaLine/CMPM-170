@@ -97,7 +97,7 @@ function love.load()
 
     -- countdown timer
     local TIMER_DURATION = 60
-    gameTimer = Countdown:new(TIMER_DURATION, function()
+    gameTimer = Countdown:new(TIMER_DURATION, nil, function()
         GameOver()
     end)
     gameTimer:start()

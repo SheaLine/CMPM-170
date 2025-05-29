@@ -7,13 +7,14 @@ local Countdown = {}
 Countdown.__index = Countdown
 
 --- Create a new Countdown
-function Countdown:new(duration, onFinish)
+function Countdown:new(duration, text, onFinish)
     local instance = setmetatable({}, self)
     instance.duration     = duration or 0
     instance.timeLeft     = instance.duration
     instance.onFinish     = onFinish
     instance.handle       = nil
     instance.running      = false
+    instance.text         = text or "Time Left: %d"
     return instance
 end
 
@@ -65,7 +66,7 @@ end
 --- Draw the current time remaining
 function Countdown:draw(x, y)
     local font = love.graphics.getFont()
-    local text = string.format("Time Left: %d", math.max(0, self.timeLeft))
+    local text = string.format(self.text, math.max(0, self.timeLeft))
     love.graphics.setColor(1,1,1)
     love.graphics.print(text, x - font:getWidth(text)/2, y)
 end
