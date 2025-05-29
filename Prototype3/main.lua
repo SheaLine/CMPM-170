@@ -4,6 +4,11 @@ local Map       = require "map"
 local Minigame  = require "minigame"
 local Timer    = require "lib.timer"
 local Countdown = require "countdown"
+local MazeMinigame = require "mazeGame"
+
+-- Globals
+local mapEntity, players, p1Minigame, p2Minigame, viewports, blankEntity1, blankEntity2
+
 
 -- auto scale the game to fit the window
 local Viewport = {}
@@ -22,10 +27,11 @@ end
 
 function Viewport:draw()
     -- 1) Clip to this viewport’s rectangle
+    love.graphics.push()
     love.graphics.setScissor(self.x, self.y, self.w, self.h)
 
     -- 2) Shift the origin so (0,0) is the top‑left of this viewport
-    love.graphics.push()
+   
     love.graphics.translate(self.x, self.y)
 
     -- 3) Draw whatever Entity lives here (map or minigame)
@@ -36,6 +42,17 @@ function Viewport:draw()
 
     if self.entity.type == "map" then
         gameTimer:draw(self.w/2, 10)
+    end
+
+    if self.entity and self.entity.type == "blank" then
+        love.graphics.printf(
+            string.format("No current Player %d Minigame.", self.entity.playerId),
+            0, self.h/2, self.w, "center"
+        )
+        love.graphics.printf(
+            "Go try to fix something in the city!",
+            0, self.h/2 + 20, self.w, "center"
+        )
     end
 
     -- 4) Un‑translate
@@ -60,7 +77,12 @@ end
 -- Blank placeholder entity for empty minigame slots
 local Blank = {}
 Blank.__index = Blank
-function Blank:new() return setmetatable({}, self) end
+function Blank:new(playerId)
+    local instance = setmetatable({}, self)
+    instance.type = "blank"
+    instance.playerId = playerId
+    return instance 
+end
 function Blank:update() end
 function Blank:draw(w, h)
     -- draw neutral background
@@ -70,22 +92,21 @@ function Blank:draw(w, h)
 end
 function Blank:handleInput() end
 
--- Globals
-local mapEntity, players, p1Minigame, p2Minigame, viewports, blankEntity
-
 function generateViewports()
     local W, H = love.graphics.getDimensions()
     local topH = H * 0.3
     local botH = H - topH
-    blankEntity = blankEntity or Blank:new()
+    blankEntity1 = blankEntity1 or Blank:new(1)
+    blankEntity2 = blankEntity2 or Blank:new(2)
     viewports = {
-        Viewport:new(0,0, W * 0.5, topH, p1Minigame or blankEntity),
-        Viewport:new(W * 0.5,0, W * 0.5, topH, p2Minigame or blankEntity),
+        Viewport:new(0,0, W * 0.5, topH, p1Minigame or blankEntity1),
+        Viewport:new(W * 0.5,0, W * 0.5, topH, p2Minigame or blankEntity2),
         Viewport:new(0,topH,W, botH, mapEntity)
     }
 end
 
 function love.load()
+    math.randomseed(os.time())
     -- instantiate players
     players = {
         Player:new(1, 100, 150, {up="w", down="s", left="a", right="d", action="q"}, {1,0,0}),
@@ -114,14 +135,16 @@ function love.update(dt)
     for _, vp in ipairs(viewports) do vp:update(dt) end
 
     -- auto-exit minigame when completed after 5 seconds
-    if p1Minigame and p1Minigame.completed then
+    if p1Minigame and p1Minigame.completed and not p1Minigame.exitScheduled then
+        p1Minigame.exitScheduled = true
         Timer.after(5, function()
             players[1].inMinigame = false
             p1Minigame = nil
             generateViewports()
         end)
     end
-    if p2Minigame and p2Minigame.completed then
+    if p2Minigame and p2Minigame.completed and not p2Minigame.exitScheduled then
+        p2Minigame.exitScheduled = true
         Timer.after(5, function()
             players[2].inMinigame = false
             p2Minigame = nil
@@ -139,9 +162,9 @@ function love.keypressed(key)
     for _, p in ipairs(players) do
         if key == p.controls.action and not p.inMinigame then
             if p.playerId == 1 then
-                p1Minigame = Minigame:new(1)
+                p1Minigame = MazeMinigame:new(1)
             elseif p.playerId == 2 then
-                p2Minigame = Minigame:new(2)
+                p2Minigame = MazeMinigame:new(2)
             end
             p.inMinigame = true
             generateViewports()

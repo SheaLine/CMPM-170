@@ -8,10 +8,12 @@ function Minigame:new(playerId)
     instance.type      = "minigame"
     instance.playerId  = playerId
     instance.completed = false
-    instance.debugMode = true
+    instance.debugMode = true  -- If this is true, pressing space will complete the minigame for debug purposes
+    instance.exitScheduled = false
     instance.timerStarted = false
     instance.idleTimer = Countdown:new(5, "wait(%d)", function()
         instance.idleTimer:cancel()
+        instance.idleTimer = nil
     end)
     return instance
 end
@@ -27,16 +29,7 @@ function Minigame:draw(viewW, viewH)
 
     -- Draw instructions
     love.graphics.setColor(1,1,1)
-    if not self.completed then
-        love.graphics.printf(
-            string.format("Player %d Minigame", self.playerId),
-            0, viewH/2 - 10, viewW, "center"
-        )
-        if self.debugMode then love.graphics.printf(
-            "Press SPACE to complete",
-            0, viewH/2 + 10, viewW, "center"
-        ) end
-    else
+    if self.completed then
         love.graphics.printf("Completed!", 0, viewH/2, viewW, "center")
         if not self.timerStarted then
             self.idleTimer:start()
