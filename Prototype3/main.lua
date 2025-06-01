@@ -37,7 +37,7 @@ function Viewport:draw()
     -- Shift the origin so (0,0) is the top‑left of this viewport
     love.graphics.translate(self.x, self.y)
 
-    -- Draw whatever Entity lives here (map or minigame)
+    -- Draw whatever Entity lives here (map, minigame, blank, or tutorial)
     if self.entity and self.entity.draw then
         self.entity:draw(self.w, self.h)
     end
@@ -156,7 +156,10 @@ function love.load()
     -- first tutorial message
     tutor:queueMessages(
     {"Hey there friend! Do you mind helping me turn on the lights in here I am at City Hall",
-    " just come over here and press Q if you are Red or / if you are Blue to start a minigame.",
+    "Red Player, use WASD to move around the city and Q to start a minigame.",
+    "Blue Player, use the arrow keys to move around the city and / to start a minigame.",
+    "Once you successfully complete a minigame, whatever was broken will be fixed!",
+    "Just come over here and press Q if you are Red or / if you are Blue to fix City Hall!",
     "Once you complete the minigame, the lights will turn on. Please hurry, I am getting scared!"},
         7
     )
