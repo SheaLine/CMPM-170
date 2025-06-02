@@ -208,6 +208,14 @@ function love.update(dt)
         print("HERE")
         tutor.angry = true
         tutor.state   = "angry"
+
+    -- Activate rest of the zones
+    for _, zone in ipairs(mapEntity.zones) do
+        if zone.name ~= "City Hall" then
+            zone.active = true
+        end
+    end
+
         tutor:queueMessages(
             {"Haha! I lied—I’m free now and will destroy this city!",
             "ahahahahah! You thought you could help me? No way!",
@@ -225,27 +233,65 @@ function love.draw()
 end
 
 function love.keypressed(key)
+    -- MANUAL minigame exit (e.g. pressing "return")
+    if key == "return" then
+        if p1.inMinigame then
+            p1.inMinigame = false
+            p1Minigame = nil
+        end
+        if p2.inMinigame then
+            p2.inMinigame = false
+            p2Minigame = nil
+        end
+
+        generateViewports()
+        return -- prevent further processing this frame
+    end
+
     -- trigger minigame creation
     for _, p in ipairs(players) do
         if key == p.controls.action and not p.inMinigame then
-            if p.playerId == 1 then
+            local zone = getAvailableZoneForPlayer(p)
+            if zone then
                 local minigames = {MazeMinigame, GuessMinigame}
                 local chosenMinigame = minigames[math.random(#minigames)]
-                p1Minigame = chosenMinigame:new(1)
-            elseif p.playerId == 2 then
-                local minigames = {GuessMinigame, MazeMinigame}
-                local chosenMinigame = minigames[math.random(#minigames)]
-                p2Minigame = chosenMinigame:new(2)
+                local mg = chosenMinigame:new(p.playerId)
+
+                if p.playerId == 1 then p1Minigame = mg
+                elseif p.playerId == 2 then p2Minigame = mg end
+
+                p.inMinigame = true
+                zone.completed = true
+                zone.active = false
+                mapEntity.zonesCompleted = mapEntity.zonesCompleted + 1
+                -- If City Hall was just completed, begin timed spawning
+                if zone.name == "City Hall" then
+                    mapEntity.zonesSpawning = true
+                end
+                generateViewports()
             end
-            p.inMinigame = true
-            generateViewports()
         end
     end
-    -- forward input
+
+    -- forward input to viewports
     for _, vp in ipairs(viewports) do
         vp:handleInput(key)
     end
 end
+
+
+
+
+
+function getAvailableZoneForPlayer(player)
+    for _, zone in ipairs(mapEntity.zones) do
+        if zone:contains(player.x, player.y) then
+            return zone
+        end
+    end
+    return nil
+end
+
 
 function GameOver()
     print("Game Over!")

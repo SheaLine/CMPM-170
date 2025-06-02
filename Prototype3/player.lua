@@ -57,14 +57,15 @@ function Player:draw()
         
 
         love.graphics.setColor(1, 1, 1)
+        local scale = 1.2  -- scale factor for the sprite
         love.graphics.draw(
             self.sprite,
-            self.x - self.width / 2 + offsetX,
-            self.y - self.height / 2,
-            0,          -- rotation
-            scaleX,     -- scaleX (flip if -1)
-            1           -- scaleY
-        )
+            self.x - (self.sprite:getWidth() * scale) / 2 + offsetX,
+            self.y - (self.sprite:getHeight() * scale) / 2,
+            0,
+            scaleX * scale,  -- apply scale and flipping
+            scale
+        )        
     else
         -- fallback rectangle if sprite is missing
         love.graphics.setColor(self.color)
